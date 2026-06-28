@@ -51,7 +51,7 @@ def show():
     col3.metric("Columns", original_columns)
 
     with st.expander("View Original Data"):
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, width="stretch")
 
     st.divider()
 
@@ -155,7 +155,7 @@ def show():
             col2.metric("New Rows", len(result_df))
             col3.metric("Columns", len(result_df.columns))
 
-            st.dataframe(result_df, use_container_width=True)
+            st.dataframe(result_df, width="stretch")
 
             st.divider()
 

@@ -26,7 +26,7 @@ def show():
     st.divider()
 
     st.subheader("📥 Inbox Preview")
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df, width="stretch")
 
     st.divider()
 
@@ -47,27 +47,27 @@ def show():
         if action == "Summarize Inbox":
             result = df.groupby("category").size().reset_index(name="count")
             st.success("✅ Inbox summarized successfully.")
-            st.dataframe(result, use_container_width=True)
+            st.dataframe(result, width="stretch")
 
         elif action == "Extract Tasks":
             result = df[df["category"] == "Task"]
             st.success(f"✅ Extracted {len(result)} task emails.")
-            st.dataframe(result, use_container_width=True)
+            st.dataframe(result, width="stretch")
 
         elif action == "Show Invoices":
             result = df[df["category"] == "Invoice"]
             st.success(f"✅ Found {len(result)} invoice emails.")
-            st.dataframe(result, use_container_width=True)
+            st.dataframe(result, width="stretch")
 
         elif action == "Show Support Emails":
             result = df[df["category"] == "Support"]
             st.success(f"✅ Found {len(result)} support emails.")
-            st.dataframe(result, use_container_width=True)
+            st.dataframe(result, width="stretch")
 
         elif action == "Export Summary":
             result = df.groupby("category").size().reset_index(name="count")
             st.success("✅ Summary ready for export.")
-            st.dataframe(result, use_container_width=True)
+            st.dataframe(result, width="stretch")
 
             csv = result.to_csv(index=False).encode("utf-8")
 

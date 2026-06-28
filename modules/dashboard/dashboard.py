@@ -51,7 +51,7 @@ def show():
     st.divider()
 
     section_title("🕒 Recent Activity", "Latest automation runs from SQLite logs")
-    st.dataframe(df.head(10), use_container_width=True)
+    st.dataframe(df.head(10), width="stretch")
 
     st.divider()
 
@@ -63,4 +63,4 @@ def show():
 
     section_title("📁 Recent Files", "Recently processed files")
     recent_files = df[["Timestamp", "File Name", "Tool", "Message"]].head(5)
-    st.dataframe(recent_files, use_container_width=True)
+    st.dataframe(recent_files, width="stretch")

@@ -63,7 +63,7 @@ def show():
     else:
         filtered_df = df
 
-    st.dataframe(filtered_df, use_container_width=True)
+    st.dataframe(filtered_df, width="stretch")
 
     st.divider()
 

@@ -47,7 +47,7 @@ def show():
                         })
 
                 st.success(f"✅ Extracted {len(links)} links.")
-                st.dataframe(links, use_container_width=True)
+                st.dataframe(links, width="stretch")
                 message = f"Extracted {len(links)} links from {url}"
 
             elif action == "Count Images":
