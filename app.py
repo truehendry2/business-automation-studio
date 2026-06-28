@@ -1,4 +1,5 @@
 import streamlit as st
+from database import create_database
 from modules import dashboard, excel_tools, email_tools, browser_tools, ai_tools
 
 st.set_page_config(
@@ -6,6 +7,8 @@ st.set_page_config(
     page_icon="⚙️",
     layout="wide"
 )
+
+create_database()
 
 st.sidebar.title("⚙️ Automation Studio")
 

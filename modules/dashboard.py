@@ -1,50 +1,60 @@
 import streamlit as st
 import pandas as pd
+from database import get_logs
+
 
 def show():
     st.title("⚙️ Business Automation Studio")
-    st.write("Version 1.0 — Automate repetitive business workflows from one dashboard.")
+    st.write("Version 1.1 — Real automation tracking with SQLite logs.")
 
     st.divider()
+
+    logs = get_logs()
+
+    if len(logs) == 0:
+        st.info("No automation logs yet. Run an Excel automation first.")
+        return
+
+    df = pd.DataFrame(
+        logs,
+        columns=[
+            "Timestamp",
+            "File Name",
+            "Tool",
+            "Original Rows",
+            "New Rows",
+            "Status",
+            "Message"
+        ]
+    )
+
+    total_tasks = len(df)
+    completed = len(df[df["Status"] == "Success"])
+    failed = len(df[df["Status"] == "Failed"])
+    success_rate = round((completed / total_tasks) * 100, 1)
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Today's Tasks", "12", "+3")
-    col2.metric("Completed", "11", "+2")
-    col3.metric("Failed", "1", "-1")
-    col4.metric("Automations", "4", "+1")
-
-    st.divider()
-
-    st.subheader("📌 System Status")
-
-    status_col1, status_col2, status_col3 = st.columns(3)
-
-    status_col1.success("Excel Module: Active")
-    status_col2.warning("Email Module: Coming Soon")
-    status_col3.warning("AI Module: Coming Soon")
+    col1.metric("Total Tasks", total_tasks)
+    col2.metric("Completed", completed)
+    col3.metric("Failed", failed)
+    col4.metric("Success Rate", f"{success_rate}%")
 
     st.divider()
 
     st.subheader("🕒 Recent Activity")
-
-    data = {
-        "Time": ["09:00", "10:15", "11:30", "12:05"],
-        "Tool": ["Excel Cleaner", "Dashboard", "Report Export", "Excel Cleaner"],
-        "Action": ["Removed duplicates", "Opened app", "Generated report", "Cleaned file"],
-        "Status": ["Success", "Success", "Success", "Success"]
-    }
-
-    df = pd.DataFrame(data)
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df.head(10), use_container_width=True)
 
     st.divider()
 
-    st.subheader("📊 Automation Overview")
+    st.subheader("📊 Automation Usage")
 
-    chart_data = pd.DataFrame({
-        "Module": ["Excel", "Email", "Browser", "AI"],
-        "Tasks": [8, 2, 1, 1]
-    })
+    usage = df["Tool"].value_counts()
+    st.bar_chart(usage)
 
-    st.bar_chart(chart_data.set_index("Module"))
+    st.divider()
+
+    st.subheader("📁 Recent Files")
+
+    recent_files = df[["Timestamp", "File Name", "Tool", "Message"]].head(5)
+    st.dataframe(recent_files, use_container_width=True)

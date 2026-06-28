@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from database import add_log
 from io import BytesIO
 
 
@@ -134,6 +135,15 @@ def show():
 
             elif tool == "Excel to CSV":
                 message = "Converted Excel data to CSV format."
+
+            add_log(
+                file_name=uploaded_file.name,
+                tool_name=tool,
+                original_rows=original_rows,
+                new_rows=len(result_df),
+                status="Success",
+                message=message
+            )
 
             st.success(f"✅ Automation Complete: {message}")
 
