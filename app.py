@@ -6,6 +6,7 @@ from modules.email import email_tools
 from modules.browser import browser_tools
 from modules.ai import ai_tools
 from modules.reports import reports
+from modules.settings import settings
 
 st.set_page_config(
     page_title="Business Automation Studio",
@@ -49,5 +50,4 @@ elif page == "📈 Reports":
     reports.show()
 
 elif page == "⚙ Settings":
-    st.title("Settings")
-    st.info("Settings page coming soon.")
+    settings.show()
