@@ -1,4 +1,4 @@
-# Python cache
+.# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
@@ -22,3 +22,7 @@ env/
 
 # Windows
 Thumbs.db
+
+# Database
+automation_studio.db
+*.db
