@@ -8,6 +8,7 @@ from modules.ai import ai_tools
 from modules.reports import reports
 from modules.settings import settings
 
+
 st.set_page_config(
     page_title="Business Automation Studio",
     page_icon="⚙️",
