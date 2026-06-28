@@ -140,3 +140,45 @@ def login_with_selectors(
         "screenshot_path": str(screenshot_path),
         "status": "Success"
     }
+
+def fill_form_with_selectors(
+    url: str,
+    fields: dict,
+    submit_selector: str | None = None
+) -> dict:
+    """
+    Opens a website, fills form fields using CSS selectors, optionally submits the form,
+    and captures a screenshot of the result.
+    """
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    screenshot_path = SCREENSHOT_DIR / f"form_result_{timestamp}.png"
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1366, "height": 768})
+
+        page.goto(url, timeout=30000)
+
+        for selector, value in fields.items():
+            page.fill(selector, value)
+
+        if submit_selector:
+            page.click(submit_selector)
+            page.wait_for_timeout(3000)
+
+        title = page.title()
+        current_url = page.url
+
+        page.screenshot(path=str(screenshot_path), full_page=True)
+
+        browser.close()
+
+    return {
+        "url": url,
+        "current_url": current_url,
+        "title": title,
+        "fields_filled": len(fields),
+        "screenshot_path": str(screenshot_path),
+        "status": "Success"
+    }

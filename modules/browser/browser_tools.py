@@ -6,7 +6,8 @@ from services.browser_service import (
     extract_page_text,
     extract_links,
     extract_tables,
-    login_with_selectors
+    login_with_selectors,
+    fill_form_with_selectors
 )
 
 
@@ -25,7 +26,8 @@ def show():
             "Extract Page Text",
             "Extract Links",
             "Extract Tables",
-            "Login Automation"
+            "Login Automation",
+            "Form Automation"
         ]
     )
 
@@ -63,6 +65,29 @@ def show():
             placeholder='Example: button[type="submit"]'
         )
     
+    form_fields_text = ""
+    form_submit_selector = ""
+    
+    if tool == "Form Automation":
+        st.subheader("Form Fields")
+    
+        st.write(
+            "Enter one field per line using this format:"
+        )
+    
+        st.code('input[name="firstName"] | Hendry\ninput[name="email"] | test@example.com')
+    
+        form_fields_text = st.text_area(
+            "Field selectors and values",
+            height=180,
+            placeholder='input[name="firstName"] | Hendry\ninput[name="email"] | test@example.com'
+        )
+    
+        form_submit_selector = st.text_input(
+            "Submit Button Selector (optional)",
+            placeholder='Example: button[type="submit"]'
+        )
+
     if st.button("🚀 Run Browser Automation"):
         if not url:
             st.error("Please enter a URL.")
@@ -202,6 +227,55 @@ def show():
                     message = "Completed login automation and captured screenshot."
                     total_rows = 1
                     
+                elif tool == "Form Automation":
+                    if not form_fields_text.strip():
+                        st.error("Please enter at least one form field.")
+                        return
+
+                    fields = {}
+
+                    for line in form_fields_text.splitlines():
+                        if "|" not in line:
+                            st.error(
+                                "Invalid format. Use: CSS selector | value"
+                            )
+                            return
+
+                        selector, value = line.split("|", 1)
+                        selector = selector.strip()
+                        value = value.strip()
+
+                        if selector and value:
+                            fields[selector] = value
+
+                    if len(fields) == 0:
+                        st.error("No valid form fields found.")
+                        return
+
+                    result = fill_form_with_selectors(
+                        url=url,
+                        fields=fields,
+                        submit_selector=form_submit_selector if form_submit_selector else None
+                    )
+
+                    st.success("✅ Form automation completed.")
+                    st.write("**Page Title:**", result["title"])
+                    st.write("**Current URL:**", result["current_url"])
+                    st.write("**Fields Filled:**", result["fields_filled"])
+
+                    st.image(result["screenshot_path"], width="stretch")
+
+                    with open(result["screenshot_path"], "rb") as file:
+                        st.download_button(
+                            "Download Form Screenshot",
+                            data=file,
+                            file_name="form_result.png",
+                            mime="image/png"
+                        )
+
+                    message = f"Filled {result['fields_filled']} form field(s)."
+                    total_rows = result["fields_filled"]
+
                 add_log(
                     file_name=url,
                     tool_name=f"Browser - {tool}",
