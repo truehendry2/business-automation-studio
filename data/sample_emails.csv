@@ -1,0 +1,5 @@
+sender,subject,body,category,status
+client@example.com,Invoice for June,Please find attached the invoice for June.,Invoice,Unread
+support@example.com,Website issue,The login page is not working for some users.,Support,Unread
+manager@example.com,Weekly report,Please send the weekly automation report by Friday.,Task,Read
+sales@example.com,Follow up,Can you follow up with the new lead today?,Sales,Unread
