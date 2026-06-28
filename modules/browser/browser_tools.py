@@ -1,87 +1,111 @@
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
 from database.database import add_log
+from services.browser_service import (
+    open_website,
+    take_screenshot,
+    extract_page_text,
+    extract_links
+)
 
 
 def show():
-    st.title("🌐 Browser Automation")
-    st.write("Version 1.0 — Extract website titles, links, and page information.")
+    st.title("🌐 Browser Automation Toolkit")
+    st.write("Automate browser tasks using Playwright.")
 
     st.divider()
 
-    url = st.text_input("Enter website URL", "https://example.com")
-
-    action = st.selectbox(
-        "Choose browser automation",
+    tool = st.selectbox(
+        "Choose Browser Automation",
         [
-            "Get Page Title",
-            "Extract Links",
-            "Count Images",
-            "Download Page HTML"
+            "Open Website",
+            "Extract Page Title",
+            "Take Screenshot",
+            "Extract Page Text",
+            "Extract Links"
         ]
     )
 
+    url = st.text_input(
+        "Website URL",
+        placeholder="https://example.com"
+    )
+
     if st.button("🚀 Run Browser Automation"):
+        if not url:
+            st.error("Please enter a URL.")
+            return
+
         try:
-            response = requests.get(url, timeout=10)
-            soup = BeautifulSoup(response.text, "html.parser")
+            with st.spinner("Running browser automation..."):
 
-            if action == "Get Page Title":
-                title = soup.title.string if soup.title else "No title found"
-                st.success("✅ Page title extracted.")
-                st.write(title)
-                message = f"Extracted title from {url}"
+                if tool in ["Open Website", "Extract Page Title"]:
+                    result = open_website(url)
 
-            elif action == "Extract Links":
-                links = []
+                    st.success("✅ Website opened successfully.")
+                    st.write("**Title:**", result["title"])
+                    st.write("**URL:**", result["url"])
 
-                for link in soup.find_all("a"):
-                    href = link.get("href")
-                    text = link.get_text(strip=True)
+                    message = f"Extracted page title: {result['title']}"
 
-                    if href:
-                        links.append({
-                            "Text": text,
-                            "URL": href
-                        })
+                elif tool == "Take Screenshot":
+                    result = take_screenshot(url)
 
-                st.success(f"✅ Extracted {len(links)} links.")
-                st.dataframe(links, width="stretch")
-                message = f"Extracted {len(links)} links from {url}"
+                    st.success("✅ Screenshot captured.")
+                    st.write("**Title:**", result["title"])
+                    st.image(result["screenshot_path"], width="stretch")
 
-            elif action == "Count Images":
-                images = soup.find_all("img")
-                st.success(f"✅ Found {len(images)} images.")
-                st.write(f"Total images: {len(images)}")
-                message = f"Counted {len(images)} images from {url}"
+                    with open(result["screenshot_path"], "rb") as file:
+                        st.download_button(
+                            "Download Screenshot",
+                            data=file,
+                            file_name="browser_screenshot.png",
+                            mime="image/png"
+                        )
 
-            elif action == "Download Page HTML":
-                st.success("✅ HTML downloaded successfully.")
-                st.download_button(
-                    "Download HTML",
-                    response.text,
-                    "page.html",
-                    "text/html"
+                    message = f"Screenshot saved: {result['screenshot_path']}"
+
+                elif tool == "Extract Page Text":
+                    result = extract_page_text(url)
+
+                    st.success("✅ Page text extracted.")
+                    st.write("**Title:**", result["title"])
+                    st.text_area("Extracted Text", result["text"], height=300)
+
+                    message = "Extracted page text."
+
+                elif tool == "Extract Links":
+                    links_df = extract_links(url)
+
+                    st.success(f"✅ Extracted {len(links_df)} links.")
+                    st.dataframe(links_df, width="stretch")
+
+                    csv = links_df.to_csv(index=False).encode("utf-8")
+
+                    st.download_button(
+                        "Download Links CSV",
+                        csv,
+                        "extracted_links.csv",
+                        "text/csv"
+                    )
+
+                    message = f"Extracted {len(links_df)} links."
+
+                add_log(
+                    file_name=url,
+                    tool_name=f"Browser - {tool}",
+                    original_rows=1,
+                    new_rows=1,
+                    status="Success",
+                    message=message
                 )
-                message = f"Downloaded HTML from {url}"
-
-            add_log(
-                file_name=url,
-                tool_name=f"Browser - {action}",
-                original_rows=1,
-                new_rows=1,
-                status="Success",
-                message=message
-            )
 
         except Exception as e:
-            st.error(f"Something went wrong: {e}")
+            st.error(f"Automation failed: {e}")
 
             add_log(
                 file_name=url,
-                tool_name=f"Browser - {action}",
-                original_rows=0,
+                tool_name=f"Browser - {tool}",
+                original_rows=1,
                 new_rows=0,
                 status="Failed",
                 message=str(e)
