@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 from pathlib import Path
 from datetime import datetime
+from io import StringIO
 import pandas as pd
 
 
@@ -78,3 +79,21 @@ def extract_links(url: str) -> pd.DataFrame:
         browser.close()
 
     return pd.DataFrame(links)
+
+def extract_tables(url: str) -> list[pd.DataFrame]:
+    """
+    Opens a website, extracts HTML tables, and returns them as DataFrames.
+    """
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(url, timeout=30000)
+
+        html = page.content()
+
+        browser.close()
+
+    tables = pd.read_html(StringIO(html))
+
+    return tables

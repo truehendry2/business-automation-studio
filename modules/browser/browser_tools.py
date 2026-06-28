@@ -4,7 +4,8 @@ from services.browser_service import (
     open_website,
     take_screenshot,
     extract_page_text,
-    extract_links
+    extract_links,
+    extract_tables
 )
 
 
@@ -21,7 +22,8 @@ def show():
             "Extract Page Title",
             "Take Screenshot",
             "Extract Page Text",
-            "Extract Links"
+            "Extract Links",
+            "Extract Tables"
         ]
     )
 
@@ -34,6 +36,9 @@ def show():
         if not url:
             st.error("Please enter a URL.")
             return
+
+        message = ""
+        total_rows = 1
 
         try:
             with st.spinner("Running browser automation..."):
@@ -69,32 +74,73 @@ def show():
 
                     st.success("✅ Page text extracted.")
                     st.write("**Title:**", result["title"])
-                    st.text_area("Extracted Text", result["text"], height=300)
+                    st.text_area(
+                        "Extracted Text",
+                        result["text"],
+                        height=300
+                    )
 
                     message = "Extracted page text."
 
                 elif tool == "Extract Links":
                     links_df = extract_links(url)
 
-                    st.success(f"✅ Extracted {len(links_df)} links.")
+                    total_rows = len(links_df)
+
+                    st.success(f"✅ Extracted {total_rows} links.")
                     st.dataframe(links_df, width="stretch")
 
                     csv = links_df.to_csv(index=False).encode("utf-8")
 
                     st.download_button(
                         "Download Links CSV",
-                        csv,
-                        "extracted_links.csv",
-                        "text/csv"
+                        data=csv,
+                        file_name="extracted_links.csv",
+                        mime="text/csv"
                     )
 
-                    message = f"Extracted {len(links_df)} links."
+                    message = f"Extracted {total_rows} links."
+
+                elif tool == "Extract Tables":
+                    tables = extract_tables(url)
+
+                    if len(tables) == 0:
+                        st.warning("No tables found on this page.")
+                        total_rows = 0
+                        message = "No tables found."
+
+                    else:
+                        total_rows = 0
+
+                        st.success(f"✅ Extracted {len(tables)} table(s).")
+
+                        for index, table in enumerate(tables):
+                            st.subheader(f"Table {index + 1}")
+
+                            st.dataframe(table, width="stretch")
+
+                            table_rows = len(table)
+                            total_rows += table_rows
+
+                            csv = table.to_csv(index=False).encode("utf-8")
+
+                            st.download_button(
+                                f"Download Table {index + 1} CSV",
+                                data=csv,
+                                file_name=f"table_{index + 1}.csv",
+                                mime="text/csv"
+                            )
+
+                        message = (
+                            f"Extracted {len(tables)} table(s) "
+                            f"with {total_rows} total rows."
+                        )
 
                 add_log(
                     file_name=url,
                     tool_name=f"Browser - {tool}",
                     original_rows=1,
-                    new_rows=1,
+                    new_rows=total_rows,
                     status="Success",
                     message=message
                 )
