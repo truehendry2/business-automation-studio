@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
-from database import add_log
+from database.database import add_log
 
 
 def show():

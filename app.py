@@ -1,6 +1,10 @@
 import streamlit as st
-from database import create_database
-from modules import dashboard, excel_tools, email_tools, browser_tools, ai_tools
+from database.database import create_database
+from modules.dashboard import dashboard
+from modules.excel import excel_tools
+from modules.email import email_tools
+from modules.browser import browser_tools
+from modules.ai import ai_tools
 
 st.set_page_config(
     page_title="Business Automation Studio",

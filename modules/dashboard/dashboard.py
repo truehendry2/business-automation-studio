@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from database import get_logs
+from database.database import get_logs
 
 
 def show():
