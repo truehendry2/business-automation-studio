@@ -97,3 +97,46 @@ def extract_tables(url: str) -> list[pd.DataFrame]:
     tables = pd.read_html(StringIO(html))
 
     return tables
+
+def login_with_selectors(
+    url: str,
+    username: str,
+    password: str,
+    username_selector: str,
+    password_selector: str,
+    submit_selector: str
+) -> dict:
+    """
+    Logs into a website using user-provided CSS selectors.
+    Takes a screenshot after login.
+    """
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    screenshot_path = SCREENSHOT_DIR / f"login_result_{timestamp}.png"
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1366, "height": 768})
+
+        page.goto(url, timeout=30000)
+
+        page.fill(username_selector, username)
+        page.fill(password_selector, password)
+        page.click(submit_selector)
+
+        page.wait_for_timeout(3000)
+
+        title = page.title()
+        current_url = page.url
+
+        page.screenshot(path=str(screenshot_path), full_page=True)
+
+        browser.close()
+
+    return {
+        "url": url,
+        "current_url": current_url,
+        "title": title,
+        "screenshot_path": str(screenshot_path),
+        "status": "Success"
+    }

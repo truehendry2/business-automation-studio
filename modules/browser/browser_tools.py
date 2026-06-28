@@ -5,7 +5,8 @@ from services.browser_service import (
     take_screenshot,
     extract_page_text,
     extract_links,
-    extract_tables
+    extract_tables,
+    login_with_selectors
 )
 
 
@@ -23,7 +24,8 @@ def show():
             "Take Screenshot",
             "Extract Page Text",
             "Extract Links",
-            "Extract Tables"
+            "Extract Tables",
+            "Login Automation"
         ]
     )
 
@@ -31,7 +33,36 @@ def show():
         "Website URL",
         placeholder="https://example.com"
     )
-
+    
+    username = ""
+    password = ""
+    username_selector = ""
+    password_selector = ""
+    submit_selector = ""
+    
+    if tool == "Login Automation":
+        st.subheader("Login Details")
+    
+        username = st.text_input("Username / Email")
+        password = st.text_input("Password", type="password")
+    
+        st.subheader("CSS Selectors")
+    
+        username_selector = st.text_input(
+            "Username Field Selector",
+            placeholder='Example: input[name="username"]'
+        )
+    
+        password_selector = st.text_input(
+            "Password Field Selector",
+            placeholder='Example: input[name="password"]'
+        )
+    
+        submit_selector = st.text_input(
+            "Submit Button Selector",
+            placeholder='Example: button[type="submit"]'
+        )
+    
     if st.button("🚀 Run Browser Automation"):
         if not url:
             st.error("Please enter a URL.")
@@ -136,6 +167,41 @@ def show():
                             f"with {total_rows} total rows."
                         )
 
+                elif tool == "Login Automation":
+                    if not username or not password:
+                        st.error("Please enter username and password.")
+                        return
+                
+                    if not username_selector or not password_selector or not submit_selector:
+                        st.error("Please enter all CSS selectors.")
+                        return
+                
+                    result = login_with_selectors(
+                        url=url,
+                        username=username,
+                        password=password,
+                        username_selector=username_selector,
+                        password_selector=password_selector,
+                        submit_selector=submit_selector
+                    )
+                
+                    st.success("✅ Login automation completed.")
+                    st.write("**Page Title:**", result["title"])
+                    st.write("**Current URL:**", result["current_url"])
+                
+                    st.image(result["screenshot_path"], width="stretch")
+                
+                    with open(result["screenshot_path"], "rb") as file:
+                        st.download_button(
+                            "Download Login Screenshot",
+                            data=file,
+                            file_name="login_result.png",
+                            mime="image/png"
+                        )
+                
+                    message = "Completed login automation and captured screenshot."
+                    total_rows = 1
+                    
                 add_log(
                     file_name=url,
                     tool_name=f"Browser - {tool}",
