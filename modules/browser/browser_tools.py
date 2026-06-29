@@ -7,7 +7,8 @@ from services.browser_service import (
     extract_links,
     extract_tables,
     login_with_selectors,
-    fill_form_with_selectors
+    fill_form_with_selectors,
+    download_file_from_selector
 )
 
 
@@ -27,7 +28,8 @@ def show():
             "Extract Links",
             "Extract Tables",
             "Login Automation",
-            "Form Automation"
+            "Form Automation",
+            "Download File"
         ]
     )
 
@@ -86,6 +88,20 @@ def show():
         form_submit_selector = st.text_input(
             "Submit Button Selector (optional)",
             placeholder='Example: button[type="submit"]'
+        )
+
+    download_selector = ""
+
+    if tool == "Download File":
+        st.subheader("Download Settings")
+
+        download_selector = st.text_input(
+            "Download Link/Button Selector",
+            placeholder='Example: a[href$=".csv"]'
+        )
+
+        st.info(
+            "This tool clicks a download link or button and saves the downloaded file locally."
         )
 
     if st.button("🚀 Run Browser Automation"):
@@ -257,6 +273,31 @@ def show():
                         fields=fields,
                         submit_selector=form_submit_selector if form_submit_selector else None
                     )
+
+                elif tool == "Download File":
+                    if not download_selector:
+                        st.error("Please enter a download selector.")
+                        return
+                
+                    result = download_file_from_selector(
+                        url=url,
+                        download_selector=download_selector
+                    )
+                
+                    st.success("✅ File downloaded successfully.")
+                    st.write("**Page Title:**", result["title"])
+                    st.write("**Current URL:**", result["current_url"])
+                    st.write("**Saved File:**", result["downloaded_file"])
+                
+                    with open(result["downloaded_file"], "rb") as file:
+                        st.download_button(
+                            "Download File",
+                            data=file,
+                            file_name=result["file_name"]
+                        )
+                
+                    message = f"Downloaded file: {result['file_name']}"
+                    total_rows = 1
 
                     st.success("✅ Form automation completed.")
                     st.write("**Page Title:**", result["title"])

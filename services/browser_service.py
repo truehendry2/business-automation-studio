@@ -8,6 +8,9 @@ import pandas as pd
 SCREENSHOT_DIR = Path("screenshots/browser")
 SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
 
+DOWNLOAD_DIR = Path("downloads/browser")
+DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def open_website(url: str) -> dict:
     with sync_playwright() as p:
@@ -180,5 +183,51 @@ def fill_form_with_selectors(
         "title": title,
         "fields_filled": len(fields),
         "screenshot_path": str(screenshot_path),
+        "status": "Success"
+    }
+
+def download_file_from_selector(
+    url: str,
+    download_selector: str
+) -> dict:
+    """
+    Opens a website, clicks a download link/button using a CSS selector,
+    saves the downloaded file, and returns the file path.
+    """
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+
+        page = browser.new_page(
+            viewport={"width": 1366, "height": 768},
+            accept_downloads=True
+        )
+
+        page.goto(url, timeout=30000)
+
+        with page.expect_download() as download_info:
+            page.click(download_selector)
+
+        download = download_info.value
+
+        suggested_name = download.suggested_filename
+        saved_file_name = f"{timestamp}_{suggested_name}"
+        saved_path = DOWNLOAD_DIR / saved_file_name
+
+        download.save_as(str(saved_path))
+
+        title = page.title()
+        current_url = page.url
+
+        browser.close()
+
+    return {
+        "url": url,
+        "current_url": current_url,
+        "title": title,
+        "downloaded_file": str(saved_path),
+        "file_name": saved_file_name,
         "status": "Success"
     }
